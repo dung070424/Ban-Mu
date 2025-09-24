@@ -1,0 +1,343 @@
+<div class="products-container">
+  <!-- Header -->
+  <div class="products-header">
+    <div class="header-left">
+      <h1>Quản lý sản phẩm</h1>
+      <p>Quản lý danh mục sản phẩm và tồn kho</p>
+    </div>
+    <div class="header-right">
+      <button class="add-product-btn" (click)="openAddModal()">
+        <span>+</span>
+        Thêm sản phẩm
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalProducts() }}</div>
+        <div class="stat-label">Tổng sản phẩm</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeProducts() }}</div>
+        <div class="stat-label">Đang bán</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ lowStockProducts().length }}</div>
+        <div class="stat-label">Sắp hết hàng</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ formatVnd(totalValue()) }}</div>
+        <div class="stat-label">Giá trị tồn kho</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Tìm kiếm sản phẩm..."
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <select [value]="selectedCategory()" (change)="onCategoryChange($event)" class="filter-select">
+      @for (category of categories(); track category.id) {
+      <option [value]="category.id">{{ category.name }}</option>
+      }
+    </select>
+    <select [value]="selectedStatus()" (change)="onStatusChange($event)" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="active">Đang bán</option>
+      <option value="inactive">Ngừng bán</option>
+    </select>
+  </div>
+
+  <!-- Products Table -->
+  <div class="products-table-container">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Hình ảnh</th>
+          <th>Tên sản phẩm</th>
+          <th>SKU</th>
+          <th>Danh mục</th>
+          <th>Giá bán</th>
+          <th>Tồn kho</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of filteredProducts(); track product.id) {
+        <tr>
+          <td>
+            <div class="product-image">
+              <img [src]="product.imageUrl" [alt]="product.name" />
+            </div>
+          </td>
+          <td>
+            <div class="product-info">
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-description">{{ product.description }}</div>
+            </div>
+          </td>
+          <td>
+            <span class="sku">{{ product.sku }}</span>
+          </td>
+          <td>
+            <span class="category">{{ product.category }}</span>
+          </td>
+          <td>
+            <div class="price-info">
+              <div class="price">{{ formatVnd(product.price) }}</div>
+              <div class="cost">Giá vốn: {{ formatVnd(product.cost) }}</div>
+            </div>
+          </td>
+          <td>
+            <div class="stock-info">
+              <div class="stock-quantity" [class]="'stock-' + getStockStatus(product)">
+                {{ product.stock }}
+              </div>
+              <div class="stock-range">
+                Min: {{ product.minStock }} | Max: {{ product.maxStock }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <button
+              class="status-btn"
+              [class]="'status-' + product.status"
+              (click)="toggleProductStatus(product)"
+            >
+              {{ product.status === 'active' ? 'Đang bán' : 'Ngừng bán' }}
+            </button>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="edit-btn" (click)="openEditModal(product)">✏️</button>
+              <button class="delete-btn" (click)="deleteProduct(product.id)">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Product Modal -->
+  @if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Thêm sản phẩm mới</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tên sản phẩm *</label>
+          <input type="text" [(ngModel)]="newProduct().name" placeholder="Nhập tên sản phẩm" />
+        </div>
+        <div class="form-group">
+          <label>Mô tả</label>
+          <textarea
+            [(ngModel)]="newProduct().description"
+            placeholder="Nhập mô tả sản phẩm"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>SKU *</label>
+            <input type="text" [(ngModel)]="newProduct().sku" placeholder="Mã sản phẩm" />
+          </div>
+          <div class="form-group">
+            <label>Danh mục *</label>
+            <input
+              type="text"
+              [(ngModel)]="newProduct().category"
+              placeholder="Danh mục sản phẩm"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Giá bán (VNĐ)</label>
+            <input type="number" [(ngModel)]="newProduct().price" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Giá vốn (VNĐ)</label>
+            <input type="number" [(ngModel)]="newProduct().cost" placeholder="0" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tồn kho hiện tại</label>
+            <input type="number" [(ngModel)]="newProduct().stock" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>URL hình ảnh</label>
+            <input
+              type="text"
+              [(ngModel)]="newProduct().imageUrl"
+              placeholder="Bấm để chọn ảnh từ máy hoặc dán URL"
+              readonly
+              (click)="addImageFileInput.click()"
+            />
+            <input
+              type="file"
+              #addImageFileInput
+              accept="image/*"
+              style="display: none"
+              (change)="onLocalImageSelected($event, 'add')"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tồn kho tối thiểu</label>
+            <input type="number" [(ngModel)]="newProduct().minStock" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Tồn kho tối đa</label>
+            <input type="number" [(ngModel)]="newProduct().maxStock" placeholder="0" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+        <button class="save-btn" (click)="addProduct()">Thêm sản phẩm</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Edit Product Modal -->
+  @if (showEditModal() && selectedProduct()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Chỉnh sửa sản phẩm</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tên sản phẩm *</label>
+          <input
+            type="text"
+            [value]="selectedProduct()?.name"
+            (input)="onProductFieldChange('name', $event)"
+          />
+        </div>
+        <div class="form-group">
+          <label>Mô tả</label>
+          <textarea
+            [value]="selectedProduct()?.description"
+            (input)="onProductFieldChange('description', $event)"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>SKU *</label>
+            <input
+              type="text"
+              [value]="selectedProduct()?.sku"
+              (input)="onProductFieldChange('sku', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Danh mục *</label>
+            <input
+              type="text"
+              [value]="selectedProduct()?.category"
+              (input)="onProductFieldChange('category', $event)"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Giá bán (VNĐ)</label>
+            <input
+              type="number"
+              [value]="selectedProduct()?.price"
+              (input)="onProductNumberFieldChange('price', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Giá vốn (VNĐ)</label>
+            <input
+              type="number"
+              [value]="selectedProduct()?.cost"
+              (input)="onProductNumberFieldChange('cost', $event)"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tồn kho hiện tại</label>
+            <input
+              type="number"
+              [value]="selectedProduct()?.stock"
+              (input)="onProductNumberFieldChange('stock', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>URL hình ảnh</label>
+            <input
+              type="text"
+              [value]="selectedProduct()?.imageUrl"
+              readonly
+              (click)="editImageFileInput.click()"
+            />
+            <input
+              type="file"
+              #editImageFileInput
+              accept="image/*"
+              style="display: none"
+              (change)="onLocalImageSelected($event, 'edit')"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tồn kho tối thiểu</label>
+            <input
+              type="number"
+              [value]="selectedProduct()?.minStock"
+              (input)="onProductNumberFieldChange('minStock', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Tồn kho tối đa</label>
+            <input
+              type="number"
+              [value]="selectedProduct()?.maxStock"
+              (input)="onProductNumberFieldChange('maxStock', $event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+        <button class="save-btn" (click)="updateProduct()">Cập nhật</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

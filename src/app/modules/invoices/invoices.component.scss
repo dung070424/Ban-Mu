@@ -1,0 +1,173 @@
+.invoices-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.header .sub {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-actions .search {
+  width: 300px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.stat {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: right;
+}
+.stat-value {
+  font-weight: 700;
+}
+.stat-label {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.header input {
+  width: 320px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.invoice-table th,
+.invoice-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+.invoice-table th.align-right {
+  text-align: right;
+}
+.invoice-table td.num {
+  text-align: right;
+}
+.invoice-table td.num.minus {
+  color: #dc2626;
+}
+.invoice-table td.num.strong {
+  font-weight: 700;
+  color: #111827;
+}
+.invoice-table thead th {
+  background: #f8fafc;
+  font-weight: 700;
+}
+.empty {
+  text-align: center;
+  color: #6b7280;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 640px;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-body {
+  padding: 16px 20px;
+}
+
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.items .item,
+.total .item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: capitalize;
+  background: #f3f4f6;
+  color: #374151;
+}
+.status.completed {
+  background: #ecfdf5;
+  color: #065f46;
+}
+.status.pending {
+  background: #fffbeb;
+  color: #92400e;
+}
+.status.cancelled {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+}
+.primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}

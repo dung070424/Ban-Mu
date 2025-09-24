@@ -1,0 +1,315 @@
+<div class="customers-container">
+  <!-- Header -->
+  <div class="customers-header">
+    <div class="header-left">
+      <h1>Quản lý khách hàng</h1>
+      <p>Quản lý thông tin và lịch sử mua hàng của khách hàng</p>
+    </div>
+    <div class="header-right">
+      <button class="add-btn" (click)="openAddModal()">
+        <span class="btn-icon">+</span>
+        Thêm khách hàng
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalCustomers() }}</div>
+        <div class="stat-label">Tổng khách hàng</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeCustomers() }}</div>
+        <div class="stat-label">Khách hàng hoạt động</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ formatVnd(totalRevenue()) }}</div>
+        <div class="stat-label">Tổng doanh thu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Tìm kiếm khách hàng..."
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <select [value]="statusFilter()" (change)="onStatusChange($event)" class="status-filter">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="active">Hoạt động</option>
+      <option value="inactive">Không hoạt động</option>
+    </select>
+  </div>
+
+  <!-- Customers Table -->
+  <div class="customers-table-container">
+    <table class="customers-table">
+      <thead>
+        <tr>
+          <th>Tên khách hàng</th>
+          <th>Liên hệ</th>
+          <th>Địa chỉ</th>
+          <th>Đơn hàng</th>
+          <th>Tổng chi tiêu</th>
+          <th>Lần cuối</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (customer of filteredCustomers(); track customer.id) {
+        <tr>
+          <td>
+            <div class="customer-info">
+              <div class="customer-name">{{ customer.name }}</div>
+              @if (customer.notes) {
+              <div class="customer-notes">{{ customer.notes }}</div>
+              }
+            </div>
+          </td>
+          <td>
+            <div class="contact-info">
+              <div class="phone">{{ customer.phone }}</div>
+              @if (customer.email) {
+              <div class="email">{{ customer.email }}</div>
+              }
+            </div>
+          </td>
+          <td>
+            <div class="address">{{ customer.address }}</div>
+          </td>
+          <td>
+            <div class="orders-info">
+              <div class="orders-count">{{ customer.totalOrders }} đơn</div>
+            </div>
+          </td>
+          <td>
+            <div class="spent-amount">{{ formatVnd(customer.totalSpent) }}</div>
+          </td>
+          <td>
+            <div class="last-order">{{ formatDateOrCurrent(customer.lastOrderDate) }}</div>
+          </td>
+          <td>
+            <button
+              class="status-btn"
+              [class.active]="customer.status === 'active'"
+              [class.inactive]="customer.status === 'inactive'"
+              (click)="toggleCustomerStatus(customer)"
+            >
+              {{ customer.status === 'active' ? 'Hoạt động' : 'Không hoạt động' }}
+            </button>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="edit-btn" (click)="openEditModal(customer)" title="Chỉnh sửa">
+                ✏️
+              </button>
+              <button class="delete-btn" (click)="deleteCustomer(customer.id)" title="Xóa">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (filteredCustomers().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">👥</div>
+      <h3>Không tìm thấy khách hàng</h3>
+      <p>Thử thay đổi bộ lọc hoặc thêm khách hàng mới</p>
+    </div>
+    }
+  </div>
+</div>
+
+<!-- Add Customer Modal -->
+@if (showAddModal()) {
+<div class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Thêm khách hàng mới</h2>
+      <button class="close-btn" (click)="closeModals()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tên khách hàng *</label>
+        <input
+          type="text"
+          [value]="newCustomer().name"
+          (input)="onNewCustomerFieldChange('name', $event)"
+          placeholder="Nhập tên khách hàng..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Số điện thoại *</label>
+        <input
+          type="tel"
+          [value]="newCustomer().phone"
+          (input)="onNewCustomerFieldChange('phone', $event)"
+          placeholder="Nhập số điện thoại..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input
+          type="email"
+          [value]="newCustomer().email"
+          (input)="onNewCustomerFieldChange('email', $event)"
+          placeholder="Nhập email..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Địa chỉ</label>
+        <textarea
+          [value]="newCustomer().address"
+          (input)="onNewCustomerFieldChange('address', $event)"
+          placeholder="Nhập địa chỉ..."
+          class="form-textarea"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Trạng thái</label>
+        <select
+          [value]="newCustomer().status"
+          (change)="onNewCustomerStatusChange($event)"
+          class="form-select"
+        >
+          <option value="active">Hoạt động</option>
+          <option value="inactive">Không hoạt động</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Ghi chú</label>
+        <textarea
+          [value]="newCustomer().notes"
+          (input)="onNewCustomerFieldChange('notes', $event)"
+          placeholder="Nhập ghi chú..."
+          class="form-textarea"
+          rows="2"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+      <button class="confirm-btn" (click)="addCustomer()">Thêm khách hàng</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Edit Customer Modal -->
+@if (showEditModal()) {
+<div class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Chỉnh sửa khách hàng</h2>
+      <button class="close-btn" (click)="closeModals()">×</button>
+    </div>
+
+    <div class="modal-body">
+      @if (selectedCustomer(); as customer) {
+      <div class="form-group">
+        <label>Tên khách hàng *</label>
+        <input
+          type="text"
+          [value]="customer.name"
+          (input)="onCustomerFieldChange('name', $event)"
+          placeholder="Nhập tên khách hàng..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Số điện thoại *</label>
+        <input
+          type="tel"
+          [value]="customer.phone"
+          (input)="onCustomerFieldChange('phone', $event)"
+          placeholder="Nhập số điện thoại..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input
+          type="email"
+          [value]="customer.email"
+          (input)="onCustomerFieldChange('email', $event)"
+          placeholder="Nhập email..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Địa chỉ</label>
+        <textarea
+          [value]="customer.address"
+          (input)="onCustomerFieldChange('address', $event)"
+          placeholder="Nhập địa chỉ..."
+          class="form-textarea"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Trạng thái</label>
+        <select
+          [value]="customer.status"
+          (change)="onCustomerFieldChange('status', $event)"
+          class="form-select"
+        >
+          <option value="active">Hoạt động</option>
+          <option value="inactive">Không hoạt động</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Ghi chú</label>
+        <textarea
+          [value]="customer.notes"
+          (input)="onCustomerFieldChange('notes', $event)"
+          placeholder="Nhập ghi chú..."
+          class="form-textarea"
+          rows="2"
+        ></textarea>
+      </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+      <button class="confirm-btn" (click)="updateCustomer()">Cập nhật</button>
+    </div>
+  </div>
+</div>
+}

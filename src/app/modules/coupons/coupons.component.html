@@ -1,0 +1,487 @@
+<div class="coupons-container">
+  <!-- Header -->
+  <div class="coupons-header">
+    <div class="header-left">
+      <h1>Quản lý phiếu giảm giá</h1>
+      <p>Tạo và quản lý các mã giảm giá cho khách hàng</p>
+    </div>
+    <div class="header-right">
+      <button class="add-coupon-btn" (click)="openAddModal()">
+        <span>+</span>
+        Tạo phiếu giảm giá
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🎫</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalCoupons() }}</div>
+        <div class="stat-label">Tổng phiếu giảm giá</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeCoupons() }}</div>
+        <div class="stat-label">Đang hoạt động</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏰</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ expiredCoupons() }}</div>
+        <div class="stat-label">Đã hết hạn</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalUsage() }}</div>
+        <div class="stat-label">Lần sử dụng</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Tìm kiếm phiếu giảm giá..."
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <select [value]="selectedStatus()" (change)="onStatusChange($event)" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="active">Đang hoạt động</option>
+      <option value="inactive">Tạm dừng</option>
+      <option value="expired">Hết hạn</option>
+    </select>
+    <select [value]="selectedType()" (change)="onTypeChange($event)" class="filter-select">
+      <option value="all">Tất cả loại</option>
+      <option value="percentage">Phần trăm</option>
+      <option value="fixed">Cố định</option>
+    </select>
+  </div>
+
+  <!-- Coupons Grid -->
+  <div class="coupons-grid">
+    @for (coupon of filteredCoupons(); track coupon.id) {
+    <div class="coupon-card" [class]="'status-' + getCouponStatus(coupon)">
+      <div class="coupon-header">
+        <div class="coupon-code">{{ coupon.code }}</div>
+        <div class="coupon-status" [class]="'status-' + getCouponStatus(coupon)">
+          @if (getCouponStatus(coupon) === 'active') { Đang hoạt động } @else if
+          (getCouponStatus(coupon) === 'expired') { Hết hạn } @else if (getCouponStatus(coupon) ===
+          'upcoming') { Sắp diễn ra } @else { Tạm dừng }
+        </div>
+      </div>
+
+      <div class="coupon-info">
+        <h3 class="coupon-name">{{ coupon.name }}</h3>
+        <p class="coupon-description">{{ coupon.description }}</p>
+
+        <div class="coupon-details">
+          <div class="detail-row">
+            <span class="detail-label">Loại giảm giá:</span>
+            <span class="detail-value">
+              @if (coupon.type === 'percentage') {
+              {{ coupon.value }}% @if (coupon.maxDiscountAmount) { (tối đa
+              {{ formatVnd(coupon.maxDiscountAmount) }}) } } @else {
+              {{ formatVnd(coupon.value) }}
+              }
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Đơn hàng tối thiểu:</span>
+            <span class="detail-value">{{ formatVnd(coupon.minOrderAmount) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Sử dụng:</span>
+            <span class="detail-value">{{ coupon.usedCount }}/{{ coupon.usageLimit }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Thời gian:</span>
+            <span class="detail-value">
+              {{ formatDate(coupon.startDate) }} - {{ formatDate(coupon.endDate) }}
+            </span>
+          </div>
+          @if (getCouponStatus(coupon) === 'active' && !isCouponExpired(coupon)) {
+          <div class="detail-row">
+            <span class="detail-label">Còn lại:</span>
+            <span class="detail-value">{{ getRemainingDays(coupon) }} ngày</span>
+          </div>
+          }
+        </div>
+
+        <div class="usage-bar">
+          <div class="usage-progress" [style.width.%]="getUsagePercentage(coupon)"></div>
+        </div>
+      </div>
+
+      <div class="coupon-actions">
+        <button class="action-btn view-btn" (click)="openDetailModal(coupon)">👁️</button>
+        <button class="action-btn edit-btn" (click)="openEditModal(coupon)">✏️</button>
+        <button
+          class="action-btn status-btn"
+          [class]="'status-' + coupon.status"
+          (click)="toggleCouponStatus(coupon)"
+          [disabled]="isCouponExpired(coupon)"
+        >
+          {{ coupon.status === 'active' ? '⏸️' : '▶️' }}
+        </button>
+        <button class="action-btn delete-btn" (click)="deleteCoupon(coupon.id)">🗑️</button>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Add Coupon Modal -->
+  @if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Tạo phiếu giảm giá mới</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mã phiếu giảm giá *</label>
+            <div class="input-with-button">
+              <input type="text" [(ngModel)]="newCoupon().code" placeholder="WELCOME10" />
+              <button
+                type="button"
+                class="generate-btn"
+                (click)="newCoupon().code = generateCouponCode()"
+              >
+                Tạo tự động
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tên phiếu giảm giá *</label>
+            <input
+              type="text"
+              [(ngModel)]="newCoupon().name"
+              placeholder="Chào mừng khách hàng mới"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mô tả</label>
+          <textarea
+            [(ngModel)]="newCoupon().description"
+            placeholder="Mô tả về phiếu giảm giá"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Loại giảm giá *</label>
+            <select [(ngModel)]="newCoupon().type">
+              <option value="percentage">Phần trăm (%)</option>
+              <option value="fixed">Số tiền cố định (VNĐ)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Giá trị giảm giá *</label>
+            <input type="number" [(ngModel)]="newCoupon().value" placeholder="10" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Đơn hàng tối thiểu (VNĐ)</label>
+            <input type="number" [(ngModel)]="newCoupon().minOrderAmount" placeholder="500000" />
+          </div>
+          <div class="form-group" *ngIf="newCoupon().type === 'percentage'">
+            <label>Giảm giá tối đa (VNĐ)</label>
+            <input type="number" [(ngModel)]="newCoupon().maxDiscountAmount" placeholder="100000" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Giới hạn sử dụng</label>
+            <input type="number" [(ngModel)]="newCoupon().usageLimit" placeholder="100" />
+          </div>
+          <div class="form-group">
+            <label>Trạng thái</label>
+            <select [(ngModel)]="newCoupon().status">
+              <option value="active">Hoạt động</option>
+              <option value="inactive">Tạm dừng</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ngày bắt đầu</label>
+            <input
+              type="date"
+              [value]="formatDateForInput(newCoupon().startDate)"
+              (change)="onNewCouponDateChange('startDate', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Ngày kết thúc</label>
+            <input
+              type="date"
+              [value]="formatDateForInput(newCoupon().endDate)"
+              (change)="onNewCouponDateChange('endDate', $event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+        <button class="save-btn" (click)="addCoupon()">Tạo phiếu giảm giá</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Edit Coupon Modal -->
+  @if (showEditModal() && selectedCoupon()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Chỉnh sửa phiếu giảm giá</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mã phiếu giảm giá *</label>
+            <input
+              type="text"
+              [value]="selectedCoupon()?.code"
+              (input)="onCouponFieldChange('code', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Tên phiếu giảm giá *</label>
+            <input
+              type="text"
+              [value]="selectedCoupon()?.name"
+              (input)="onCouponFieldChange('name', $event)"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mô tả</label>
+          <textarea
+            [value]="selectedCoupon()?.description"
+            (input)="onCouponFieldChange('description', $event)"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Loại giảm giá *</label>
+            <select [value]="selectedCoupon()?.type" (change)="onCouponTypeChange($event)">
+              <option value="percentage">Phần trăm (%)</option>
+              <option value="fixed">Số tiền cố định (VNĐ)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Giá trị giảm giá *</label>
+            <input
+              type="number"
+              [value]="selectedCoupon()?.value"
+              (input)="onCouponNumberFieldChange('value', $event)"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Đơn hàng tối thiểu (VNĐ)</label>
+            <input
+              type="number"
+              [value]="selectedCoupon()?.minOrderAmount"
+              (input)="onCouponNumberFieldChange('minOrderAmount', $event)"
+            />
+          </div>
+          <div class="form-group" *ngIf="selectedCoupon()?.type === 'percentage'">
+            <label>Giảm giá tối đa (VNĐ)</label>
+            <input
+              type="number"
+              [value]="selectedCoupon()?.maxDiscountAmount"
+              (input)="onCouponNumberFieldChange('maxDiscountAmount', $event)"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Giới hạn sử dụng</label>
+            <input
+              type="number"
+              [value]="selectedCoupon()?.usageLimit"
+              (input)="onCouponNumberFieldChange('usageLimit', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Trạng thái</label>
+            <select [value]="selectedCoupon()?.status" (change)="onCouponStatusChange($event)">
+              <option value="active">Hoạt động</option>
+              <option value="inactive">Tạm dừng</option>
+              <option value="expired">Hết hạn</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ngày bắt đầu</label>
+            <input
+              type="date"
+              [value]="formatDateForInput(selectedCoupon()?.startDate)"
+              (change)="onCouponDateChange('startDate', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Ngày kết thúc</label>
+            <input
+              type="date"
+              [value]="formatDateForInput(selectedCoupon()?.endDate)"
+              (change)="onCouponDateChange('endDate', $event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+        <button class="save-btn" (click)="updateCoupon()">Cập nhật</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Coupon Detail Modal -->
+  @if (showDetailModal() && selectedCoupon()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Chi tiết phiếu giảm giá</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="coupon-detail-header">
+          <div class="coupon-code-large">{{ selectedCoupon()?.code }}</div>
+          <div class="coupon-status-large" [class]="'status-' + getCouponStatus(selectedCoupon()!)">
+            @if (getCouponStatus(selectedCoupon()!) === 'active') { Đang hoạt động } @else if
+            (getCouponStatus(selectedCoupon()!) === 'expired') { Hết hạn } @else if
+            (getCouponStatus(selectedCoupon()!) === 'upcoming') { Sắp diễn ra } @else { Tạm dừng }
+          </div>
+        </div>
+
+        <div class="detail-sections">
+          <div class="detail-section">
+            <h4>Thông tin cơ bản</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Tên:</span>
+                <span class="detail-value">{{ selectedCoupon()?.name }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Mô tả:</span>
+                <span class="detail-value">{{ selectedCoupon()?.description }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Loại giảm giá:</span>
+                <span class="detail-value">
+                  @if (selectedCoupon()?.type === 'percentage') {
+                  {{ selectedCoupon()?.value }}% @if (selectedCoupon()?.maxDiscountAmount) { (tối đa
+                  {{ formatVnd(selectedCoupon()?.maxDiscountAmount || 0) }}) } } @else {
+                  {{ formatVnd(selectedCoupon()?.value || 0) }}
+                  }
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Đơn hàng tối thiểu:</span>
+                <span class="detail-value">{{
+                  formatVnd(selectedCoupon()?.minOrderAmount || 0)
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Thông tin sử dụng</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Đã sử dụng:</span>
+                <span class="detail-value"
+                  >{{ selectedCoupon()?.usedCount }}/{{ selectedCoupon()?.usageLimit }}</span
+                >
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Tỷ lệ sử dụng:</span>
+                <span class="detail-value"
+                  >{{ getUsagePercentage(selectedCoupon()!) | number : '1.1-1' }}%</span
+                >
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Còn lại:</span>
+                <span class="detail-value"
+                  >{{
+                    (selectedCoupon()?.usageLimit || 0) - (selectedCoupon()?.usedCount || 0)
+                  }}
+                  lần</span
+                >
+              </div>
+            </div>
+            <div class="usage-bar-large">
+              <div
+                class="usage-progress"
+                [style.width.%]="getUsagePercentage(selectedCoupon()!)"
+              ></div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Thời gian áp dụng</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Ngày bắt đầu:</span>
+                <span class="detail-value">{{
+                  formatDateOrCurrent(selectedCoupon()?.startDate)
+                }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Ngày kết thúc:</span>
+                <span class="detail-value">{{
+                  formatDateOrCurrent(selectedCoupon()?.endDate)
+                }}</span>
+              </div>
+              @if (getCouponStatus(selectedCoupon()!) === 'active' &&
+              !isCouponExpired(selectedCoupon()!)) {
+              <div class="detail-item">
+                <span class="detail-label">Còn lại:</span>
+                <span class="detail-value">{{ getRemainingDays(selectedCoupon()!) }} ngày</span>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Đóng</button>
+        <button class="edit-btn" (click)="openEditModal(selectedCoupon()!)">Chỉnh sửa</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

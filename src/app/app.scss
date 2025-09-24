@@ -1,0 +1,613 @@
+/* Ẩn thanh cuộn toàn bộ trang */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  box-sizing: border-box;
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Đảm bảo không có element nào vượt quá viewport */
+#root,
+app-root {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+}
+
+/* Cấu hình body và html - Ẩn hoàn toàn thanh cuộn */
+html,
+body {
+  overflow: hidden !important; /* Ẩn hoàn toàn thanh cuộn ngoài cùng */
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+/* Layout tổng */
+.app-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  height: 100vh !important; /* Cố định chiều cao để cuộn bên trong content */
+  max-height: 100vh !important;
+  background: #f6f7fb;
+  box-sizing: border-box;
+  overflow: hidden !important; /* Không để layout ngoài cùng cuộn */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #ffffff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  border-right: 1px solid #eef0f4;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef0f4;
+}
+.brand .logo {
+  font-size: 24px;
+}
+.brand .brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.brand .brand-text small {
+  color: #8b90a0;
+}
+
+.close-sidebar {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.close-sidebar:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.menu {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+.menu-item:hover {
+  background: #f1f4f9;
+}
+.menu-item.active {
+  background: #edf2ff;
+  border-color: #d6e0ff;
+  color: #3a57e8;
+}
+.menu-icon {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+.menu-label {
+  font-weight: 500;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.logout:hover {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menu-toggle:hover {
+  background: #e5e7eb;
+}
+
+.hamburger {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.mobile-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.mobile-spacer {
+  width: 40px;
+}
+
+/* Mobile Overlay */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Main Content */
+.main-content {
+  background: #f6f7fb;
+  padding: 16px;
+  overflow-y: auto; /* Khu vực này chịu trách nhiệm cuộn */
+  height: 100%; /* Chiếm toàn bộ chiều cao còn lại */
+}
+.content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.title-group h2 {
+  margin: 0;
+}
+.title-group .subtitle {
+  color: #8b90a0;
+  font-size: 12px;
+}
+.search input {
+  width: 320px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.product-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eef0f4;
+  display: flex;
+  flex-direction: column;
+}
+.product-card .thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+.product-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.product-card .badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  opacity: 0.9;
+}
+.product-info {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+.product-info .desc {
+  color: #667085;
+  font-size: 12px;
+  min-height: 32px;
+}
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.price {
+  font-weight: 600;
+}
+.btn-add {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #0f172a;
+  color: #fff;
+}
+.btn-add:hover {
+  opacity: 0.9;
+}
+
+/* Cart */
+.cart {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eef0f4;
+}
+.cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.cart-empty {
+  text-align: center;
+  color: #8b90a0;
+  padding: 24px 8px;
+}
+.empty-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.cart-list {
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+}
+.cart-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #f0f2f5;
+  border-radius: 8px;
+}
+.ci-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ci-actions button {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+.ci-price {
+  font-weight: 600;
+}
+.cart-footer {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+.btn-clear,
+.btn-pay {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+}
+.btn-pay {
+  background: #3a57e8;
+  color: #fff;
+  border-color: #3a57e8;
+}
+.btn-pay:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .app-layout {
+    grid-template-columns: 240px 1fr;
+  }
+
+  .sidebar {
+    padding: 12px;
+  }
+
+  .menu-item {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .menu-icon {
+    font-size: 16px;
+    width: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
+
+  .mobile-header {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .close-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-overlay {
+    display: block;
+  }
+
+  .brand {
+    padding-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand .logo {
+    font-size: 20px;
+  }
+
+  .brand .brand-text {
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 12px;
+    height: auto;
+    min-height: calc(100vh - 60px);
+  }
+
+  .menu-item {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  .menu-icon {
+    font-size: 18px;
+    width: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 8px;
+  }
+
+  .menu-item {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .menu-icon {
+    font-size: 16px;
+    width: 18px;
+  }
+}
+
+
+/* User Info Styles */
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2d3748;
+  font-size: 0.9rem;
+}
+
+.user-avatar {
+  font-size: 1.2rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+}
+
+.user-section {
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar-large {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-details .user-name {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-details .user-role {
+  font-size: 0.8rem;
+  color: #667eea;
+  font-weight: 500;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-details .user-email {
+  font-size: 0.75rem;
+  color: #718096;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout {
+  width: 100%;
+  background: #fed7d7;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #feb2b2;
+    border-color: #fc8181;
+  }
+}
+
+/* Mobile responsive for user info */
+@media (max-width: 768px) {
+  .mobile-user-info {
+    font-size: 0.8rem;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .user-section {
+    padding: 16px;
+  }
+
+  .user-avatar-large {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .user-details .user-name {
+    font-size: 0.9rem;
+  }
+
+  .user-details .user-role {
+    font-size: 0.75rem;
+  }
+
+  .user-details .user-email {
+    font-size: 0.7rem;
+  }
+}

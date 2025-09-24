@@ -1,0 +1,114 @@
+<div class="invoices-container">
+  <div class="header">
+    <div>
+      <h1>Quản lý hóa đơn</h1>
+      <div class="sub">Theo dõi danh sách và chi tiết hóa đơn bán hàng</div>
+    </div>
+    <div class="header-actions">
+      <div class="stat">
+        <div class="stat-value">{{ totalInvoices() }}</div>
+        <div class="stat-label">Tổng hóa đơn</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ formatVnd(totalRevenue()) }}</div>
+        <div class="stat-label">Tổng doanh thu</div>
+      </div>
+      <input
+        type="text"
+        class="search"
+        placeholder="Tìm theo mã hóa đơn hoặc tên khách hàng..."
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <table class="invoice-table">
+    <thead>
+      <tr>
+        <th>Mã hóa đơn</th>
+        <th>Ngày</th>
+        <th>Khách hàng</th>
+        <th class="align-right">Tạm tính</th>
+        <th class="align-right">Giảm giá</th>
+        <th class="align-right">Thanh toán</th>
+        <th>Trạng thái</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (inv of filtered(); track inv.id) {
+      <tr>
+        <td>{{ inv.id }}</td>
+        <td>{{ inv.date | date : 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ inv.customerInfo?.name || '-' }}</td>
+        <td class="num">{{ formatVnd(inv.total) }}</td>
+        <td class="num minus">{{ formatVnd(inv.discount || 0) }}</td>
+        <td class="num strong">{{ formatVnd(inv.finalTotal || inv.total) }}</td>
+        <td>
+          <span
+            class="status"
+            [class.completed]="inv.status === 'completed'"
+            [class.pending]="inv.status === 'pending'"
+            [class.cancelled]="inv.status === 'cancelled'"
+          >
+            {{ inv.status }}
+          </span>
+        </td>
+        <td>
+          <button class="link-btn" (click)="openDetails(inv)">Xem</button>
+        </td>
+      </tr>
+      } @if (filtered().length === 0) {
+      <tr>
+        <td colspan="8" class="empty">Chưa có hóa đơn</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (selectedInvoice()) {
+  <div class="modal-overlay" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Chi tiết hóa đơn {{ selectedInvoice().id }}</h2>
+        <button class="close-btn" (click)="closeDetails()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="meta">
+          <div><strong>Ngày:</strong> {{ selectedInvoice().date | date : 'dd/MM/yyyy HH:mm' }}</div>
+          <div><strong>Khách hàng:</strong> {{ selectedInvoice().customerInfo?.name || '-' }}</div>
+        </div>
+        <div class="items">
+          <h3>Sản phẩm</h3>
+          @for (i of selectedInvoice().items; track i.id) {
+          <div class="item">
+            <span>{{ i.name }} x{{ i.qty }}</span>
+            <span>{{ formatVnd(i.price * i.qty) }}</span>
+          </div>
+          }
+        </div>
+        <div class="total">
+          <div class="item">
+            <span>Tổng cộng:</span>
+            <span>{{ formatVnd(selectedInvoice().total) }}</span>
+          </div>
+          @if (selectedInvoice().discount) {
+          <div class="item">
+            <span>Giảm giá:</span>
+            <span>-{{ formatVnd(selectedInvoice().discount) }}</span>
+          </div>
+          }
+          <div class="item">
+            <span>Thanh toán:</span>
+            <span>{{ formatVnd(selectedInvoice().finalTotal || selectedInvoice().total) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="primary" (click)="closeDetails()">Đóng</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

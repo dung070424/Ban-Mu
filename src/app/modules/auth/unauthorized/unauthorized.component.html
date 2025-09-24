@@ -1,0 +1,21 @@
+<div class="unauthorized-container">
+  <div class="unauthorized-card">
+    <div class="error-icon">🚫</div>
+    <h1 class="error-title">Không có quyền truy cập</h1>
+    <p class="error-message">Xin lỗi, bạn không có quyền truy cập vào trang này.</p>
+
+    @if (getCurrentUser()) {
+    <div class="user-info">
+      <p class="user-role">
+        Vai trò hiện tại: <strong>{{ getCurrentUser()!.role.toUpperCase() }}</strong>
+      </p>
+      <p class="user-name">Người dùng: {{ getCurrentUser()!.fullName }}</p>
+    </div>
+    }
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" (click)="goBack()">Quay lại trang chủ</button>
+      <button class="btn btn-secondary" (click)="logout()">Đăng xuất</button>
+    </div>
+  </div>
+</div>

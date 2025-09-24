@@ -1,0 +1,65 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1 class="login-title">🛒 BanMu POS</h1>
+      <p class="login-subtitle">Hệ thống quản lý bán mũ</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username" class="form-label">Tên đăng nhập</label>
+        <input
+          type="text"
+          id="username"
+          class="form-input"
+          [value]="loginForm().username"
+          (input)="onUsernameChange($event)"
+          placeholder="Nhập tên đăng nhập"
+          [disabled]="isLoading()"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Mật khẩu</label>
+        <input
+          type="password"
+          id="password"
+          class="form-input"
+          [value]="loginForm().password"
+          (input)="onPasswordChange($event)"
+          placeholder="Nhập mật khẩu"
+          [disabled]="isLoading()"
+          required
+        />
+      </div>
+
+      @if (errorMessage()) {
+      <div class="error-message">
+        {{ errorMessage() }}
+      </div>
+      }
+
+      <button type="submit" class="login-button" [disabled]="isLoading()">
+        @if (isLoading()) {
+        <span class="loading-spinner"></span>
+        Đang đăng nhập... } @else { Đăng nhập }
+      </button>
+    </form>
+
+    <div class="demo-accounts">
+      <h3 class="demo-title">Tài khoản demo</h3>
+      <div class="demo-list">
+        @for (account of getDemoAccounts(); track account.username) {
+        <div class="demo-item">
+          <div class="demo-role">{{ account.role.toUpperCase() }}</div>
+          <div class="demo-credentials">
+            <strong>{{ account.username }}</strong> / {{ account.password }}
+          </div>
+          <div class="demo-description">{{ account.description }}</div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

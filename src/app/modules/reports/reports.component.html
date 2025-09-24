@@ -1,0 +1,291 @@
+<div class="reports-container">
+  <!-- Header -->
+  <div class="reports-header">
+    <div class="header-left">
+      <h1>Báo cáo & Thống kê</h1>
+      <p>Phân tích hiệu suất kinh doanh và xu hướng bán hàng</p>
+    </div>
+    <div class="header-right">
+      <div class="report-controls">
+        <select [value]="selectedPeriod()" (change)="onPeriodChange($event)" class="period-select">
+          <option value="7days">7 ngày qua</option>
+          <option value="30days">30 ngày qua</option>
+          <option value="90days">90 ngày qua</option>
+        </select>
+        <button class="export-btn" (click)="exportReport()">📊 Xuất báo cáo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="card-icon">💰</div>
+      <div class="card-content">
+        <div class="card-value">{{ formatVnd(totalRevenue()) }}</div>
+        <div class="card-label">Tổng doanh thu</div>
+        <div class="card-growth" [style.color]="getGrowthColor(dailyGrowth())">
+          {{ getGrowthIcon(dailyGrowth()) }} {{ formatPercentage(dailyGrowth()) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="card-icon">🛒</div>
+      <div class="card-content">
+        <div class="card-value">{{ formatNumber(totalOrders()) }}</div>
+        <div class="card-label">Tổng đơn hàng</div>
+        <div class="card-subtitle">
+          Trung bình {{ formatNumber(roundNumber(averageOrderValue())) }}/đơn
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="card-icon">📦</div>
+      <div class="card-content">
+        <div class="card-value">{{ formatNumber(totalProducts()) }}</div>
+        <div class="card-label">Sản phẩm bán ra</div>
+        <div class="card-subtitle">
+          {{ formatNumber(roundNumber(totalProducts() / totalOrders())) }} sản phẩm/đơn
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="card-icon">📈</div>
+      <div class="card-content">
+        <div class="card-value">{{ formatVnd(averageOrderValue()) }}</div>
+        <div class="card-label">Giá trị đơn hàng TB</div>
+        <div class="card-subtitle">Trung bình mỗi đơn hàng</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Tabs -->
+  <div class="report-tabs">
+    <button
+      class="tab-btn"
+      [class.active]="selectedReportType() === 'sales'"
+      (click)="onReportTypeClick('sales')"
+    >
+      📊 Doanh số
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedReportType() === 'products'"
+      (click)="onReportTypeClick('products')"
+    >
+      🏆 Sản phẩm bán chạy
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedReportType() === 'staff'"
+      (click)="onReportTypeClick('staff')"
+    >
+      👥 Hiệu suất nhân viên
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedReportType() === 'categories'"
+      (click)="onReportTypeClick('categories')"
+    >
+      📂 Danh mục
+    </button>
+  </div>
+
+  <!-- Report Content -->
+  <div class="report-content">
+    <!-- Sales Report -->
+    @if (selectedReportType() === 'sales') {
+    <div class="report-section">
+      <h3>Biểu đồ doanh thu theo ngày</h3>
+      <div class="chart-container">
+        <div class="chart-placeholder">
+          <div class="chart-mock">
+            @for (day of filteredSalesData(); track day.date) {
+            <div class="chart-bar" [style.height.%]="getRevenuePercentage(day.revenue)">
+              <div class="bar-value">{{ formatVnd(day.revenue) }}</div>
+            </div>
+            }
+          </div>
+          <div class="chart-labels">
+            @for (day of filteredSalesData(); track day.date) {
+            <div class="chart-label">{{ formatDate(day.date) }}</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="sales-table">
+        <h4>Chi tiết doanh thu theo ngày</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Ngày</th>
+              <th>Doanh thu</th>
+              <th>Số đơn hàng</th>
+              <th>Sản phẩm bán ra</th>
+              <th>Giá trị TB/đơn</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (day of filteredSalesData(); track day.date) {
+            <tr>
+              <td>{{ formatDate(day.date) }}</td>
+              <td class="revenue-cell">{{ formatVnd(day.revenue) }}</td>
+              <td>{{ formatNumber(day.orders) }}</td>
+              <td>{{ formatNumber(day.products) }}</td>
+              <td>{{ formatVnd(day.revenue / day.orders) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- Products Report -->
+    @if (selectedReportType() === 'products') {
+    <div class="report-section">
+      <div class="products-grid">
+        <div class="products-chart">
+          <h3>Sản phẩm bán chạy nhất</h3>
+          <div class="top-products">
+            @for (product of topSellingProducts(); track product.productId) {
+            <div class="product-item">
+              <div class="product-rank">#{{ $index + 1 }}</div>
+              <div class="product-info">
+                <div class="product-name">{{ product.productName }}</div>
+                <div class="product-category">{{ product.category }}</div>
+              </div>
+              <div class="product-stats">
+                <div class="product-quantity">{{ formatNumber(product.quantitySold) }} cái</div>
+                <div class="product-revenue">{{ formatVnd(product.revenue) }}</div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <div class="revenue-chart">
+          <h3>Sản phẩm có doanh thu cao nhất</h3>
+          <div class="top-revenue">
+            @for (product of topRevenueProducts(); track product.productId) {
+            <div class="revenue-item">
+              <div class="revenue-rank">#{{ $index + 1 }}</div>
+              <div class="revenue-info">
+                <div class="revenue-name">{{ product.productName }}</div>
+                <div class="revenue-category">{{ product.category }}</div>
+              </div>
+              <div class="revenue-amount">{{ formatVnd(product.revenue) }}</div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="products-table">
+        <h4>Báo cáo chi tiết sản phẩm</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Danh mục</th>
+              <th>Số lượng bán</th>
+              <th>Doanh thu</th>
+              <th>Lợi nhuận</th>
+              <th>Tỷ lệ lợi nhuận</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of productSales(); track product.productId) {
+            <tr>
+              <td class="product-name-cell">{{ product.productName }}</td>
+              <td>{{ product.category }}</td>
+              <td>{{ formatNumber(product.quantitySold) }}</td>
+              <td class="revenue-cell">{{ formatVnd(product.revenue) }}</td>
+              <td class="profit-cell">{{ formatVnd(product.profit) }}</td>
+              <td>{{ formatPercentage((product.profit / product.revenue) * 100) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- Staff Report -->
+    @if (selectedReportType() === 'staff') {
+    <div class="report-section">
+      <h3>Hiệu suất nhân viên</h3>
+      <div class="staff-performance">
+        @for (staff of topPerformingStaff(); track staff.staffId) {
+        <div class="staff-card">
+          <div class="staff-rank">#{{ $index + 1 }}</div>
+          <div class="staff-info">
+            <div class="staff-name">{{ staff.staffName }}</div>
+            <div class="staff-stats">
+              <span>{{ formatNumber(staff.orders) }} đơn hàng</span>
+              <span>•</span>
+              <span>{{ formatVnd(staff.commission) }} hoa hồng</span>
+            </div>
+          </div>
+          <div class="staff-sales">{{ formatVnd(staff.sales) }}</div>
+        </div>
+        }
+      </div>
+
+      <div class="staff-table">
+        <h4>Báo cáo chi tiết nhân viên</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Nhân viên</th>
+              <th>Doanh số</th>
+              <th>Số đơn hàng</th>
+              <th>Hoa hồng</th>
+              <th>Doanh số TB/đơn</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (staff of staffPerformance(); track staff.staffId) {
+            <tr>
+              <td class="staff-name-cell">{{ staff.staffName }}</td>
+              <td class="revenue-cell">{{ formatVnd(staff.sales) }}</td>
+              <td>{{ formatNumber(staff.orders) }}</td>
+              <td class="commission-cell">{{ formatVnd(staff.commission) }}</td>
+              <td>{{ formatVnd(staff.orders > 0 ? staff.sales / staff.orders : 0) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- Categories Report -->
+    @if (selectedReportType() === 'categories') {
+    <div class="report-section">
+      <h3>Doanh thu theo danh mục</h3>
+      <div class="categories-chart">
+        @for (category of categorySales(); track category.category) {
+        <div class="category-item">
+          <div class="category-info">
+            <div class="category-name">{{ category.category }}</div>
+            <div class="category-quantity">{{ formatNumber(category.quantity) }} sản phẩm</div>
+          </div>
+          <div class="category-revenue">{{ formatVnd(category.revenue) }}</div>
+          <div class="category-bar">
+            <div
+              class="bar-fill"
+              [style.width.%]="getCategoryRevenuePercentage(category.revenue)"
+            ></div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,407 @@
+<div class="pos-container">
+  <!-- Header -->
+  <div class="pos-header">
+    <div class="header-left">
+      <h1>Bán hàng</h1>
+      <p>Chọn sản phẩm để thêm vào giỏ hàng</p>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Tìm kiếm sản phẩm..."
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+      <select
+        [value]="selectedCategory()"
+        (change)="onCategoryChange($event)"
+        class="category-filter"
+      >
+        @for (category of categories(); track category.id) {
+        <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="pos-content">
+    <!-- Sản phẩm -->
+    <div class="products-section">
+      <div class="products-grid">
+        @for (product of filteredProducts(); track product.id) {
+        <div class="product-card">
+          <div class="product-image">
+            <img [src]="product.imageUrl" [alt]="product.name" />
+            <div class="product-badge" [class.out-of-stock]="product.stock <= 0">
+              {{ product.stock > 0 ? product.stock + ' cái' : 'Hết hàng' }}
+            </div>
+          </div>
+          <div class="product-info">
+            <h3>{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-category">{{ product.category }}</div>
+            <div class="product-footer">
+              <div class="product-price">{{ formatVnd(product.price) }}</div>
+              <button
+                class="add-to-cart-btn"
+                (click)="addToCart(product.id)"
+                [disabled]="product.stock <= 0"
+              >
+                {{ product.stock > 0 ? '+ Thêm' : 'Hết hàng' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Giỏ hàng -->
+    <div class="cart-section">
+      <div class="cart-header">
+        <h3>Giỏ hàng</h3>
+        <div class="cart-summary">
+          <span>{{ cartTotalQuantity() }} món</span>
+          <span class="cart-total">{{ formatVnd(cartTotalPrice()) }}</span>
+        </div>
+      </div>
+
+      <!-- Chọn khách hàng -->
+      <div class="customer-selection">
+        @if (selectedCustomer()) {
+        <div class="selected-customer">
+          <div class="customer-info">
+            <div class="customer-name">{{ selectedCustomer()!.name }}</div>
+            <div class="customer-phone">{{ selectedCustomer()!.phone }}</div>
+          </div>
+          <button class="clear-customer-btn" (click)="clearSelectedCustomer()">×</button>
+        </div>
+        } @else {
+        <button class="select-customer-btn" (click)="openCustomerModal()">
+          <span class="btn-icon">👤</span>
+          Chọn khách hàng
+        </button>
+        }
+      </div>
+
+      <div class="cart-content">
+        @if (cartItems().length === 0) {
+        <div class="cart-empty">
+          <div class="empty-icon">🛒</div>
+          <p>Giỏ hàng trống</p>
+          <small>Chọn sản phẩm để thêm vào giỏ</small>
+        </div>
+        } @else {
+        <div class="cart-items">
+          @for (item of cartItems(); track item.id) {
+          <div class="cart-item">
+            <div class="item-info">
+              <h4>{{ item.name }}</h4>
+              <p>{{ formatVnd(item.price) }}</p>
+            </div>
+            <div class="item-controls">
+              <button (click)="decreaseQty(item.id)" class="qty-btn">-</button>
+              <span class="qty">{{ item.qty }}</span>
+              <button (click)="increaseQty(item.id)" class="qty-btn">+</button>
+              <button (click)="removeFromCart(item.id)" class="remove-btn">×</button>
+            </div>
+            <div class="item-total">{{ formatVnd(item.price * item.qty) }}</div>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      @if (cartItems().length > 0) {
+      <div class="cart-footer">
+        <button class="clear-cart-btn" (click)="clearCart()">Xóa tất cả</button>
+        <button class="checkout-btn" (click)="processPayment()">
+          Thanh toán {{ formatVnd(finalTotal()) }}
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal thanh toán -->
+@if (showPaymentModal()) {
+<div class="modal-overlay" (click)="closePaymentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Thanh toán</h2>
+      <button class="close-btn" (click)="closePaymentModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Thông tin đơn hàng -->
+      <div class="order-summary">
+        <h3>Thông tin đơn hàng</h3>
+        <div class="summary-items">
+          @for (item of cartItems(); track item.id) {
+          <div class="summary-item">
+            <span>{{ item.name }} x{{ item.qty }}</span>
+            <span>{{ formatVnd(item.price * item.qty) }}</span>
+          </div>
+          }
+        </div>
+        <div class="summary-total">
+          <span>Tổng cộng:</span>
+          <span>{{ formatVnd(cartTotalPrice()) }}</span>
+        </div>
+
+        <!-- Mã giảm giá -->
+        <div class="coupon-section">
+          <h4>Phiếu giảm giá</h4>
+          @if (!appliedCoupon()) {
+          <div class="coupon-input">
+            <input
+              type="text"
+              placeholder="Nhập mã giảm giá..."
+              [value]="couponCode()"
+              (input)="couponCode.set(($any($event.target).value || '').toUpperCase())"
+              (keydown.enter)="applyCoupon()"
+            />
+            <button (click)="applyCoupon()">Áp dụng</button>
+          </div>
+          } @else {
+          <div class="coupon-applied">
+            <span
+              >Đang áp dụng: <strong>{{ appliedCoupon()!.code }}</strong></span
+            >
+            <button class="remove-coupon" (click)="removeCoupon()">Hủy</button>
+          </div>
+          } @if (discountAmount() > 0) {
+          <div class="discount-row">
+            <span>Giảm giá:</span>
+            <span>-{{ formatVnd(discountAmount()) }}</span>
+          </div>
+          }
+          <div class="final-row">
+            <span>Thanh toán:</span>
+            <span>{{ formatVnd(finalTotal()) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phương thức thanh toán -->
+      <div class="payment-methods">
+        <h3>Phương thức thanh toán</h3>
+        <div class="payment-options">
+          <label class="payment-option" [class.selected]="selectedPaymentMethod() === 'cash'">
+            <input
+              type="radio"
+              name="payment"
+              value="cash"
+              [checked]="selectedPaymentMethod() === 'cash'"
+              (change)="onPaymentMethodChange($event)"
+            />
+            <div class="payment-info">
+              <span class="payment-icon">💵</span>
+              <span class="payment-name">Tiền mặt</span>
+            </div>
+          </label>
+
+          <label class="payment-option" [class.selected]="selectedPaymentMethod() === 'card'">
+            <input
+              type="radio"
+              name="payment"
+              value="card"
+              [checked]="selectedPaymentMethod() === 'card'"
+              (change)="onPaymentMethodChange($event)"
+            />
+            <div class="payment-info">
+              <span class="payment-icon">💳</span>
+              <span class="payment-name">Thẻ</span>
+            </div>
+          </label>
+
+          <label class="payment-option" [class.selected]="selectedPaymentMethod() === 'transfer'">
+            <input
+              type="radio"
+              name="payment"
+              value="transfer"
+              [checked]="selectedPaymentMethod() === 'transfer'"
+              (change)="onPaymentMethodChange($event)"
+            />
+            <div class="payment-info">
+              <span class="payment-icon">🏦</span>
+              <span class="payment-name">Chuyển khoản</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Số tiền khách đưa (chỉ hiện khi chọn tiền mặt) -->
+      @if (selectedPaymentMethod() === 'cash') {
+      <div class="cash-payment">
+        <h3>Số tiền khách đưa</h3>
+        <div class="amount-input">
+          <input
+            type="number"
+            placeholder="Nhập số tiền khách đưa..."
+            [value]="customerAmount()"
+            (input)="onCustomerAmountChange($event)"
+            class="amount-field"
+          />
+          <button class="quick-amount-btn" (click)="setExactAmount()">Chính xác</button>
+        </div>
+
+        @if (customerAmount() > 0) {
+        <div class="change-info">
+          <div class="change-amount">
+            <span>Tiền thừa:</span>
+            <span class="change-value">{{ formatVnd(changeAmount()) }}</span>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" (click)="closePaymentModal()">Hủy</button>
+      <button class="print-btn" (click)="printReceipt()" [disabled]="!canProcessPayment()">
+        🖨️ In hóa đơn
+      </button>
+      <button class="confirm-btn" (click)="confirmPayment()" [disabled]="!canProcessPayment()">
+        Xác nhận thanh toán
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Modal chọn khách hàng -->
+@if (showCustomerModal()) {
+<div class="modal-overlay" (click)="closeCustomerModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Chọn khách hàng</h2>
+      <button class="close-btn" (click)="closeCustomerModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Tìm kiếm khách hàng..."
+          [value]="customerSearchTerm()"
+          (input)="onCustomerSearchInput($event)"
+          class="search-input"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+
+      <div class="customer-list">
+        @for (customer of filteredCustomers(); track customer.id) {
+        <div class="customer-item" (click)="selectCustomer(customer)">
+          <div class="customer-info">
+            <div class="customer-name">{{ customer.name }}</div>
+            <div class="customer-details">
+              <span class="phone">{{ customer.phone }}</span>
+              @if (customer.email) {
+              <span class="email">{{ customer.email }}</span>
+              }
+            </div>
+          </div>
+          <div class="customer-stats">
+            <div class="orders-count">{{ customer.totalOrders }} đơn</div>
+            <div class="total-spent">{{ formatVnd(customer.totalSpent) }}</div>
+          </div>
+        </div>
+        } @if (filteredCustomers().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <p>Không tìm thấy khách hàng</p>
+        </div>
+        }
+
+        <div class="add-customer-section">
+          <button class="add-customer-btn" (click)="openAddCustomerModal()">
+            <span class="btn-icon">➕</span>
+            Thêm khách hàng mới
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Modal thêm khách hàng mới -->
+@if (showAddCustomerModal()) {
+<div class="modal-overlay" (click)="closeAddCustomerModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Thêm khách hàng mới</h2>
+      <button class="close-btn" (click)="closeAddCustomerModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tên khách hàng *</label>
+        <input
+          type="text"
+          [value]="newCustomer().name"
+          (input)="onNewCustomerFieldChange('name', $event)"
+          placeholder="Nhập tên khách hàng..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Số điện thoại *</label>
+        <input
+          type="tel"
+          [value]="newCustomer().phone"
+          (input)="onNewCustomerFieldChange('phone', $event)"
+          placeholder="Nhập số điện thoại..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input
+          type="email"
+          [value]="newCustomer().email"
+          (input)="onNewCustomerFieldChange('email', $event)"
+          placeholder="Nhập email..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Địa chỉ</label>
+        <textarea
+          [value]="newCustomer().address"
+          (input)="onNewCustomerFieldChange('address', $event)"
+          placeholder="Nhập địa chỉ..."
+          class="form-textarea"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Ghi chú</label>
+        <textarea
+          [value]="newCustomer().notes"
+          (input)="onNewCustomerFieldChange('notes', $event)"
+          placeholder="Nhập ghi chú..."
+          class="form-textarea"
+          rows="2"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" (click)="closeAddCustomerModal()">Hủy</button>
+      <button class="confirm-btn" (click)="addNewCustomer()">Thêm khách hàng</button>
+    </div>
+  </div>
+</div>
+}

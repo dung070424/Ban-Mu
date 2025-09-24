@@ -1,0 +1,413 @@
+<div class="staff-container">
+  <!-- Header -->
+  <div class="staff-header">
+    <div class="header-left">
+      <h1>Quản lý nhân viên</h1>
+      <p>Quản lý thông tin nhân viên và phòng ban</p>
+    </div>
+    <div class="header-right">
+      <button class="add-staff-btn" (click)="openAddModal()">
+        <span>+</span>
+        Thêm nhân viên
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalStaff() }}</div>
+        <div class="stat-label">Tổng nhân viên</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeStaff() }}</div>
+        <div class="stat-label">Đang làm việc</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ formatVnd(totalSalary()) }}</div>
+        <div class="stat-label">Tổng lương</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ formatVnd(averageSalary()) }}</div>
+        <div class="stat-label">Lương trung bình</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Tìm kiếm nhân viên..."
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <select
+      [value]="selectedDepartment()"
+      (change)="onDepartmentChange($event)"
+      class="filter-select"
+    >
+      @for (department of departments(); track department.id) {
+      <option [value]="department.id">{{ department.name }}</option>
+      }
+    </select>
+    <select [value]="selectedStatus()" (change)="onStatusChange($event)" class="filter-select">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="active">Đang làm việc</option>
+      <option value="inactive">Nghỉ việc</option>
+    </select>
+  </div>
+
+  <!-- Staff Grid -->
+  <div class="staff-grid">
+    @for (member of filteredStaff(); track member.id) {
+    <div class="staff-card">
+      <div class="staff-avatar">
+        @if (member.avatar) {
+        <img [src]="member.avatar" [alt]="member.name" />
+        } @else {
+        <div class="avatar-placeholder">
+          {{ getInitials(member.name) }}
+        </div>
+        }
+        <div class="status-indicator" [class]="'status-' + member.status"></div>
+      </div>
+
+      <div class="staff-info">
+        <h3 class="staff-name">{{ member.name }}</h3>
+        <p class="staff-position">{{ member.position }}</p>
+        <p class="staff-department">{{ member.department }}</p>
+        <div class="staff-details">
+          <div class="detail-item">
+            <span class="detail-label">📧</span>
+            <span class="detail-value">{{ member.email }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">📞</span>
+            <span class="detail-value">{{ member.phone }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">💰</span>
+            <span class="detail-value">{{ formatVnd(member.salary) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">📅</span>
+            <span class="detail-value">{{ getWorkDuration(member.hireDate) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="staff-actions">
+        <button class="action-btn view-btn" (click)="openDetailModal(member)">👁️</button>
+        <button class="action-btn edit-btn" (click)="openEditModal(member)">✏️</button>
+        <button
+          class="action-btn status-btn"
+          [class]="'status-' + member.status"
+          (click)="toggleStaffStatus(member)"
+        >
+          {{ member.status === 'active' ? '✅' : '❌' }}
+        </button>
+        <button class="action-btn delete-btn" (click)="deleteStaff(member.id)">🗑️</button>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Add Staff Modal -->
+  @if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Thêm nhân viên mới</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ và tên *</label>
+            <input type="text" [(ngModel)]="newStaff().name" placeholder="Nhập họ và tên" />
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" [(ngModel)]="newStaff().email" placeholder="email@example.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số điện thoại *</label>
+            <input type="tel" [(ngModel)]="newStaff().phone" placeholder="0901234567" />
+          </div>
+          <div class="form-group">
+            <label>Chức vụ</label>
+            <input type="text" [(ngModel)]="newStaff().position" placeholder="Nhân viên bán hàng" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phòng ban</label>
+            <input type="text" [(ngModel)]="newStaff().department" placeholder="Bán hàng" />
+          </div>
+          <div class="form-group">
+            <label>Lương (VNĐ)</label>
+            <input type="number" [(ngModel)]="newStaff().salary" placeholder="8000000" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Địa chỉ</label>
+          <input
+            type="text"
+            [(ngModel)]="newStaff().address"
+            placeholder="123 Đường ABC, Quận 1, TP.HCM"
+          />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Liên hệ khẩn cấp</label>
+            <input
+              type="text"
+              [(ngModel)]="newStaff().emergencyContact"
+              placeholder="Tên người liên hệ"
+            />
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại khẩn cấp</label>
+            <input type="tel" [(ngModel)]="newStaff().emergencyPhone" placeholder="0907654321" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Ghi chú</label>
+          <textarea
+            [(ngModel)]="newStaff().notes"
+            placeholder="Ghi chú về nhân viên"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+        <button class="save-btn" (click)="addStaff()">Thêm nhân viên</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Edit Staff Modal -->
+  @if (showEditModal() && selectedStaff()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Chỉnh sửa nhân viên</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ và tên *</label>
+            <input
+              type="text"
+              [value]="selectedStaff()?.name"
+              (input)="onStaffFieldChange('name', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input
+              type="email"
+              [value]="selectedStaff()?.email"
+              (input)="onStaffFieldChange('email', $event)"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số điện thoại *</label>
+            <input
+              type="tel"
+              [value]="selectedStaff()?.phone"
+              (input)="onStaffFieldChange('phone', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Chức vụ</label>
+            <input
+              type="text"
+              [value]="selectedStaff()?.position"
+              (input)="onStaffFieldChange('position', $event)"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phòng ban</label>
+            <input
+              type="text"
+              [value]="selectedStaff()?.department"
+              (input)="onStaffFieldChange('department', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Lương (VNĐ)</label>
+            <input
+              type="number"
+              [value]="selectedStaff()?.salary"
+              (input)="onStaffNumberFieldChange('salary', $event)"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Địa chỉ</label>
+          <input
+            type="text"
+            [value]="selectedStaff()?.address"
+            (input)="onStaffFieldChange('address', $event)"
+          />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Liên hệ khẩn cấp</label>
+            <input
+              type="text"
+              [value]="selectedStaff()?.emergencyContact"
+              (input)="onStaffFieldChange('emergencyContact', $event)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại khẩn cấp</label>
+            <input
+              type="tel"
+              [value]="selectedStaff()?.emergencyPhone"
+              (input)="onStaffFieldChange('emergencyPhone', $event)"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Ghi chú</label>
+          <textarea
+            [value]="selectedStaff()?.notes"
+            (input)="onStaffFieldChange('notes', $event)"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Hủy</button>
+        <button class="save-btn" (click)="updateStaff()">Cập nhật</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Staff Detail Modal -->
+  @if (showDetailModal() && selectedStaff()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Thông tin chi tiết nhân viên</h3>
+        <button class="close-btn" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="staff-detail-header">
+          <div class="detail-avatar">
+            @if (selectedStaff()?.avatar) {
+            <img [src]="selectedStaff()?.avatar" [alt]="selectedStaff()?.name" />
+            } @else {
+            <div class="avatar-placeholder large">
+              {{ getInitials(selectedStaff()?.name || '') }}
+            </div>
+            }
+          </div>
+          <div class="detail-info">
+            <h2>{{ selectedStaff()?.name }}</h2>
+            <p class="detail-position">{{ selectedStaff()?.position }}</p>
+            <p class="detail-department">{{ selectedStaff()?.department }}</p>
+            <div class="detail-status" [class]="'status-' + selectedStaff()?.status">
+              {{ selectedStaff()?.status === 'active' ? 'Đang làm việc' : 'Nghỉ việc' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-sections">
+          <div class="detail-section">
+            <h4>Thông tin liên hệ</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{ selectedStaff()?.email }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Số điện thoại:</span>
+                <span class="detail-value">{{ selectedStaff()?.phone }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Địa chỉ:</span>
+                <span class="detail-value">{{ selectedStaff()?.address }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Thông tin công việc</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Lương:</span>
+                <span class="detail-value">{{ formatVnd(selectedStaff()?.salary || 0) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Ngày vào làm:</span>
+                <span class="detail-value">{{
+                  formatDateOrCurrent(selectedStaff()?.hireDate)
+                }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Thời gian làm việc:</span>
+                <span class="detail-value">{{
+                  getWorkDurationOrCurrent(selectedStaff()?.hireDate)
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Liên hệ khẩn cấp</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Tên người liên hệ:</span>
+                <span class="detail-value">{{ selectedStaff()?.emergencyContact }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Số điện thoại:</span>
+                <span class="detail-value">{{ selectedStaff()?.emergencyPhone }}</span>
+              </div>
+            </div>
+          </div>
+
+          @if (selectedStaff()?.notes) {
+          <div class="detail-section">
+            <h4>Ghi chú</h4>
+            <p class="detail-notes">{{ selectedStaff()?.notes }}</p>
+          </div>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModals()">Đóng</button>
+        <button class="edit-btn" (click)="openEditModal(selectedStaff()!)">Chỉnh sửa</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>
