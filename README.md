@@ -1,59 +1,193 @@
-# Banmu
+# Hệ thống bán mũ POS
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.2.
+Hệ thống quản lý bán hàng tại quầy (Point of Sale) chuyên dụng cho cửa hàng bán mũ, được xây dựng với Angular 20 và TypeScript.
 
-## Development server
+## 🚀 Tính năng chính
 
-To start a local development server, run:
+### 1. **Bán hàng (POS)**
+
+- Giao diện bán hàng trực quan với giỏ hàng
+- Tìm kiếm sản phẩm theo tên và danh mục
+- Quản lý số lượng và thanh toán
+- Tính toán tổng tiền tự động
+- Hỗ trợ phiếu giảm giá
+
+### 2. **Quản lý sản phẩm**
+
+- CRUD đầy đủ cho sản phẩm
+- Quản lý tồn kho với cảnh báo hết hàng
+- Phân loại sản phẩm theo danh mục
+- Upload hình ảnh sản phẩm
+- Theo dõi giá vốn và giá bán
+
+### 3. **Quản lý nhân viên**
+
+- Quản lý thông tin nhân viên
+- Phân quyền theo phòng ban
+- Theo dõi hiệu suất bán hàng
+- Quản lý lương và hoa hồng
+- Thông tin liên hệ khẩn cấp
+
+### 4. **Quản lý phiếu giảm giá**
+
+- Tạo mã giảm giá tự động
+- Hỗ trợ giảm giá theo % và số tiền cố định
+- Giới hạn sử dụng và thời gian áp dụng
+- Theo dõi số lần sử dụng
+- Áp dụng cho sản phẩm/danh mục cụ thể
+
+### 5. **Báo cáo & Thống kê**
+
+- Báo cáo doanh thu theo ngày/tuần/tháng
+- Top sản phẩm bán chạy
+- Hiệu suất nhân viên
+- Phân tích theo danh mục
+- Xuất báo cáo CSV
+
+## 🛠️ Công nghệ sử dụng
+
+- **Frontend**: Angular 20, TypeScript, SCSS
+- **State Management**: Angular Signals
+- **Routing**: Angular Router với lazy loading
+- **UI/UX**: Responsive design, Mobile-first
+- **Icons**: Emoji icons (có thể thay thế bằng icon library)
+
+## 📱 Responsive Design
+
+- **Desktop**: Layout 2 cột với sidebar cố định
+- **Tablet**: Layout tối ưu cho màn hình trung bình
+- **Mobile**: Sidebar ẩn với menu hamburger, layout 1 cột
+
+## 🚀 Cài đặt và chạy
+
+### Yêu cầu hệ thống
+
+- Node.js 18+
+- npm hoặc yarn
+- Angular CLI 20+
+
+### Cài đặt
 
 ```bash
-ng serve
+# Clone repository
+git clone <repository-url>
+cd banmu
+
+# Cài đặt dependencies
+npm install
+
+# Chạy development server
+npm start
+
+# Mở trình duyệt tại http://localhost:4200
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Build cho production
 
 ```bash
-ng generate component component-name
+npm run build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 📁 Cấu trúc dự án
 
-```bash
-ng generate --help
+```
+src/
+├── app/
+│   ├── modules/           # Các module chính
+│   │   ├── pos/          # Module bán hàng
+│   │   ├── products/     # Module quản lý sản phẩm
+│   │   ├── staff/        # Module quản lý nhân viên
+│   │   ├── coupons/      # Module phiếu giảm giá
+│   │   └── reports/      # Module báo cáo
+│   ├── services/         # Services
+│   │   └── data.service.ts
+│   ├── app.component.*   # Component chính
+│   └── app.routes.ts     # Routing configuration
 ```
 
-## Building
+## 🎨 Giao diện
 
-To build the project run:
+### Màu sắc chính
 
-```bash
-ng build
-```
+- **Primary**: #3b82f6 (Blue)
+- **Success**: #10b981 (Green)
+- **Warning**: #f59e0b (Yellow)
+- **Danger**: #ef4444 (Red)
+- **Neutral**: #6b7280 (Gray)
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Typography
 
-## Running unit tests
+- **Font**: Inter, system fonts
+- **Sizes**: 12px, 14px, 16px, 18px, 20px, 24px, 28px
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 🔧 Tính năng kỹ thuật
 
-```bash
-ng test
-```
+### State Management
 
-## Running end-to-end tests
+- Sử dụng Angular Signals cho reactive state
+- Centralized data service cho quản lý dữ liệu
+- Optimistic updates cho UX tốt hơn
 
-For end-to-end (e2e) testing, run:
+### Performance
 
-```bash
-ng e2e
-```
+- Lazy loading cho các module
+- OnPush change detection strategy
+- Virtual scrolling cho danh sách lớn
+- Image optimization
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Accessibility
 
-## Additional Resources
+- Keyboard navigation
+- Screen reader support
+- High contrast mode
+- Focus management
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 📊 Dữ liệu mẫu
+
+Hệ thống đi kèm với dữ liệu mẫu bao gồm:
+
+- 6 sản phẩm mũ các loại
+- 5 nhân viên với thông tin đầy đủ
+- 3 phiếu giảm giá mẫu
+- Dữ liệu báo cáo 15 ngày
+
+## 🔮 Roadmap
+
+### Version 2.0
+
+- [ ] Tích hợp API backend
+- [ ] Authentication & Authorization
+- [ ] Real-time notifications
+- [ ] Advanced reporting với charts
+- [ ] Multi-store support
+
+### Version 3.0
+
+- [ ] Mobile app (Ionic/Capacitor)
+- [ ] Offline support
+- [ ] Inventory management
+- [ ] Customer management
+- [ ] Payment gateway integration
+
+## 🤝 Đóng góp
+
+1. Fork repository
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 📞 Liên hệ
+
+- **Email**: support@banmu.com
+- **Website**: https://banmu.com
+- **GitHub**: https://github.com/banmu/pos-system
+
+---
+
+**Lưu ý**: Đây là phiên bản demo với dữ liệu mẫu. Để sử dụng trong production, cần tích hợp với backend API và database thực tế.
+# Ban-Mu
