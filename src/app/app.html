@@ -34,15 +34,28 @@
     </div>
 
     <nav class="menu">
-      @for (item of visibleMenuItems(); track item.id) {
-      <button
-        class="menu-item"
-        [class.active]="isActiveRoute(item.route)"
-        (click)="navigateTo(item.route)"
-      >
-        <span class="menu-icon">{{ item.icon }}</span>
-        <span class="menu-label">{{ item.label }}</span>
-      </button>
+      @for (group of groupedMenu(); track group.id) {
+      <div class="menu-group">
+        <button class="menu-group-header" (click)="toggleGroup(group.id)">
+          <span class="menu-icon">{{ group.icon }}</span>
+          <span class="menu-label">{{ group.label }}</span>
+          <span class="menu-expand">{{ isGroupOpen(group.id) ? '▾' : '▸' }}</span>
+        </button>
+        @if (isGroupOpen(group.id)) {
+        <div class="menu-group-items">
+          @for (item of group.items; track item.id) {
+          <button
+            class="menu-item"
+            [class.active]="isActiveRoute(item.route)"
+            (click)="navigateTo(item.route)"
+          >
+            <span class="menu-icon">{{ item.icon }}</span>
+            <span class="menu-label">{{ item.label }}</span>
+          </button>
+          }
+        </div>
+        }
+      </div>
       }
     </nav>
 

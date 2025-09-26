@@ -1,5 +1,40 @@
 import { Injectable, signal } from '@angular/core';
-import { Customer } from '../shared/models/customer.model';
+import { Customer, KhachHang, DiaChiKhachHang } from '../shared/models/customer.model';
+import { Admin } from '../shared/models/admin.model';
+import {
+  SanPham,
+  LoaiSanPham,
+  NhaSanXuat,
+  ChiTietSanPham,
+  ChiTietSanPhamChiTiet,
+  MauSac,
+  KichThuoc,
+  TrongLuong,
+  ChatLieu,
+  CongNgheAnToan,
+} from '../shared/models/product.model';
+import {
+  DonHang,
+  ChiTietDonHang,
+  PhuongGiaoGiaChiNhanh,
+  PhuongGiaoGiaChiNhanhChiTiet,
+} from '../shared/models/order.model';
+import {
+  HoaDon,
+  ChiTietHoaDon,
+  PhuongThucThanhToan,
+  ChiTietThanhToan,
+} from '../shared/models/invoice.model';
+import {
+  KhuyenMai,
+  ChiTietKhuyenMai,
+  ChiTietKhuyenMaiSanPham,
+  ChiTietKhuyenMaiLoaiSanPham,
+  ChiTietKhuyenMaiNhaSanXuat,
+  ChiTietKhuyenMaiKhachHang,
+} from '../shared/models/promotion.model';
+import { DanhGia, ChiTietDanhGia } from '../shared/models/review.model';
+import { NhanVien } from '../shared/models/employee.model';
 
 export interface Product {
   id: string;
@@ -376,6 +411,63 @@ export class DataService {
     return this.cart.asReadonly();
   }
 
+  // Computed properties that return arrays directly
+  get productsArray() {
+    return this.products();
+  }
+
+  get staffArray() {
+    return this.staff();
+  }
+
+  get couponsArray() {
+    return this.coupons();
+  }
+
+  get invoicesArray() {
+    return this.invoices();
+  }
+
+  get customersArray() {
+    return this.customers();
+  }
+
+  get adminsArray() {
+    return this.admins();
+  }
+
+  get khachHangArray() {
+    return this.khachHang();
+  }
+
+  get diaChiKhachHangArray() {
+    return this.diaChiKhachHang();
+  }
+
+  get loaiSanPhamArray() {
+    return this.loaiSanPham();
+  }
+
+  get nhaSanXuatArray() {
+    return this.nhaSanXuat();
+  }
+
+  get sanPhamArray() {
+    return this.sanPham();
+  }
+
+  get donHangArray() {
+    return this.donHang();
+  }
+
+  get danhGiaArray() {
+    return this.danhGia();
+  }
+
+  get khuyenMaiArray() {
+    return this.khuyenMai();
+  }
+
   // Product methods
   addProduct(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) {
     const newProduct: Product = {
@@ -535,7 +627,10 @@ export class DataService {
     return Date.now().toString();
   }
 
-  // ===== CUSTOMERS =====
+  // ===== ADMIN =====
+  private readonly admins = signal<Admin[]>([]);
+
+  // ===== CUSTOMERS (Legacy) =====
   private readonly customers = signal<Customer[]>([
     {
       id: '1',
@@ -609,7 +704,50 @@ export class DataService {
     },
   ]);
 
-  // Customer methods
+  // ===== KHACH HANG (New ERD) =====
+  private readonly khachHang = signal<KhachHang[]>([]);
+  private readonly diaChiKhachHang = signal<DiaChiKhachHang[]>([]);
+
+  // ===== PRODUCTS (New ERD) =====
+  private readonly loaiSanPham = signal<LoaiSanPham[]>([]);
+  private readonly nhaSanXuat = signal<NhaSanXuat[]>([]);
+  private readonly sanPham = signal<SanPham[]>([]);
+  private readonly chiTietSanPham = signal<ChiTietSanPham[]>([]);
+  private readonly chiTietSanPhamChiTiet = signal<ChiTietSanPhamChiTiet[]>([]);
+  private readonly mauSac = signal<MauSac[]>([]);
+  private readonly kichThuoc = signal<KichThuoc[]>([]);
+  private readonly trongLuong = signal<TrongLuong[]>([]);
+  private readonly chatLieu = signal<ChatLieu[]>([]);
+  private readonly congNgheAnToan = signal<CongNgheAnToan[]>([]);
+
+  // ===== ORDERS (New ERD) =====
+  private readonly donHang = signal<DonHang[]>([]);
+  private readonly chiTietDonHang = signal<ChiTietDonHang[]>([]);
+  private readonly phuongGiaoGiaChiNhanh = signal<PhuongGiaoGiaChiNhanh[]>([]);
+  private readonly phuongGiaoGiaChiNhanhChiTiet = signal<PhuongGiaoGiaChiNhanhChiTiet[]>([]);
+
+  // ===== INVOICES (New ERD) =====
+  private readonly hoaDon = signal<HoaDon[]>([]);
+  private readonly chiTietHoaDon = signal<ChiTietHoaDon[]>([]);
+  private readonly phuongThucThanhToan = signal<PhuongThucThanhToan[]>([]);
+  private readonly chiTietThanhToan = signal<ChiTietThanhToan[]>([]);
+
+  // ===== PROMOTIONS (New ERD) =====
+  private readonly khuyenMai = signal<KhuyenMai[]>([]);
+  private readonly chiTietKhuyenMai = signal<ChiTietKhuyenMai[]>([]);
+  private readonly chiTietKhuyenMaiSanPham = signal<ChiTietKhuyenMaiSanPham[]>([]);
+  private readonly chiTietKhuyenMaiLoaiSanPham = signal<ChiTietKhuyenMaiLoaiSanPham[]>([]);
+  private readonly chiTietKhuyenMaiNhaSanXuat = signal<ChiTietKhuyenMaiNhaSanXuat[]>([]);
+  private readonly chiTietKhuyenMaiKhachHang = signal<ChiTietKhuyenMaiKhachHang[]>([]);
+
+  // ===== REVIEWS (New ERD) =====
+  private readonly danhGia = signal<DanhGia[]>([]);
+  private readonly chiTietDanhGia = signal<ChiTietDanhGia[]>([]);
+
+  // ===== EMPLOYEES (New ERD) =====
+  private readonly nhanVien = signal<NhanVien[]>([]);
+
+  // Customer methods (Legacy)
   getCustomers() {
     return this.customers();
   }
@@ -623,5 +761,323 @@ export class DataService {
   }
   deleteCustomer(id: string) {
     this.customers.update((c) => c.filter((customer) => customer.id !== id));
+  }
+
+  // ===== NEW ERD METHODS =====
+
+  // Admin methods
+  getAdmins() {
+    return this.admins.asReadonly();
+  }
+  addAdmin(admin: Omit<Admin, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newAdmin: Admin = {
+      ...admin,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.admins.update((admins) => [...admins, newAdmin]);
+    return newAdmin;
+  }
+  updateAdmin(id: string, updates: Partial<Admin>) {
+    this.admins.update((admins) =>
+      admins.map((a) => (a.id === id ? { ...a, ...updates, ngay_cap_nhat: new Date() } : a))
+    );
+  }
+  deleteAdmin(id: string) {
+    this.admins.update((admins) => admins.filter((a) => a.id !== id));
+  }
+
+  // KhachHang methods
+  getKhachHang() {
+    return this.khachHang.asReadonly();
+  }
+  addKhachHang(khachHang: Omit<KhachHang, 'ma_khach_hang' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newKhachHang: KhachHang = {
+      ...khachHang,
+      ma_khach_hang: 'KH-' + this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.khachHang.update((kh) => [...kh, newKhachHang]);
+    return newKhachHang;
+  }
+  updateKhachHang(maKhachHang: string, updates: Partial<KhachHang>) {
+    this.khachHang.update((kh) =>
+      kh.map((k) =>
+        k.ma_khach_hang === maKhachHang ? { ...k, ...updates, ngay_cap_nhat: new Date() } : k
+      )
+    );
+  }
+  deleteKhachHang(maKhachHang: string) {
+    this.khachHang.update((kh) => kh.filter((k) => k.ma_khach_hang !== maKhachHang));
+  }
+
+  // DiaChiKhachHang methods
+  getDiaChiKhachHang() {
+    return this.diaChiKhachHang.asReadonly();
+  }
+  addDiaChiKhachHang(diaChi: Omit<DiaChiKhachHang, 'id'>) {
+    const newDiaChi: DiaChiKhachHang = {
+      ...diaChi,
+      id: this.generateId(),
+    };
+    this.diaChiKhachHang.update((dc) => [...dc, newDiaChi]);
+    return newDiaChi;
+  }
+  updateDiaChiKhachHang(id: string, updates: Partial<DiaChiKhachHang>) {
+    this.diaChiKhachHang.update((dc) => dc.map((d) => (d.id === id ? { ...d, ...updates } : d)));
+  }
+  deleteDiaChiKhachHang(id: string) {
+    this.diaChiKhachHang.update((dc) => dc.filter((d) => d.id !== id));
+  }
+
+  // LoaiSanPham methods
+  getLoaiSanPham() {
+    return this.loaiSanPham.asReadonly();
+  }
+  addLoaiSanPham(loai: Omit<LoaiSanPham, 'ma_loai_san_pham' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newLoai: LoaiSanPham = {
+      ...loai,
+      ma_loai_san_pham: 'LSP-' + this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.loaiSanPham.update((lsp) => [...lsp, newLoai]);
+    return newLoai;
+  }
+
+  // NhaSanXuat methods
+  getNhaSanXuat() {
+    return this.nhaSanXuat.asReadonly();
+  }
+  addNhaSanXuat(nhaSX: Omit<NhaSanXuat, 'ma_nha_san_xuat' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newNhaSX: NhaSanXuat = {
+      ...nhaSX,
+      ma_nha_san_xuat: 'NSX-' + this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.nhaSanXuat.update((nsx) => [...nsx, newNhaSX]);
+    return newNhaSX;
+  }
+
+  // SanPham methods
+  getSanPham() {
+    return this.sanPham.asReadonly();
+  }
+  addSanPham(sanPham: Omit<SanPham, 'ma_san_pham' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newSanPham: SanPham = {
+      ...sanPham,
+      ma_san_pham: 'SP-' + this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.sanPham.update((sp) => [...sp, newSanPham]);
+    return newSanPham;
+  }
+
+  // ChiTietSanPham methods
+  getChiTietSanPham() {
+    return this.chiTietSanPham.asReadonly();
+  }
+  addChiTietSanPham(chiTiet: Omit<ChiTietSanPham, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newChiTiet: ChiTietSanPham = {
+      ...chiTiet,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.chiTietSanPham.update((ct) => [...ct, newChiTiet]);
+    return newChiTiet;
+  }
+
+  // MauSac methods
+  getMauSac() {
+    return this.mauSac.asReadonly();
+  }
+  addMauSac(mau: Omit<MauSac, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newMau: MauSac = {
+      ...mau,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.mauSac.update((ms) => [...ms, newMau]);
+    return newMau;
+  }
+
+  // KichThuoc methods
+  getKichThuoc() {
+    return this.kichThuoc.asReadonly();
+  }
+  addKichThuoc(kichThuoc: Omit<KichThuoc, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newKichThuoc: KichThuoc = {
+      ...kichThuoc,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.kichThuoc.update((kt) => [...kt, newKichThuoc]);
+    return newKichThuoc;
+  }
+
+  // TrongLuong methods
+  getTrongLuong() {
+    return this.trongLuong.asReadonly();
+  }
+  addTrongLuong(trongLuong: Omit<TrongLuong, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newTrongLuong: TrongLuong = {
+      ...trongLuong,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.trongLuong.update((tl) => [...tl, newTrongLuong]);
+    return newTrongLuong;
+  }
+
+  // ChatLieu methods
+  getChatLieu() {
+    return this.chatLieu.asReadonly();
+  }
+  addChatLieu(chatLieu: Omit<ChatLieu, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newChatLieu: ChatLieu = {
+      ...chatLieu,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.chatLieu.update((cl) => [...cl, newChatLieu]);
+    return newChatLieu;
+  }
+
+  // CongNgheAnToan methods
+  getCongNgheAnToan() {
+    return this.congNgheAnToan.asReadonly();
+  }
+  addCongNgheAnToan(congNghe: Omit<CongNgheAnToan, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newCongNghe: CongNgheAnToan = {
+      ...congNghe,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.congNgheAnToan.update((cnat) => [...cnat, newCongNghe]);
+    return newCongNghe;
+  }
+
+  // DonHang methods
+  getDonHang() {
+    return this.donHang.asReadonly();
+  }
+  addDonHang(donHang: Omit<DonHang, 'id'>) {
+    const newDonHang: DonHang = {
+      ...donHang,
+      id: this.generateId(),
+    };
+    this.donHang.update((dh) => [...dh, newDonHang]);
+    return newDonHang;
+  }
+
+  // ChiTietDonHang methods
+  getChiTietDonHang() {
+    return this.chiTietDonHang.asReadonly();
+  }
+  addChiTietDonHang(chiTiet: Omit<ChiTietDonHang, 'id'>) {
+    const newChiTiet: ChiTietDonHang = {
+      ...chiTiet,
+      id: this.generateId(),
+    };
+    this.chiTietDonHang.update((ct) => [...ct, newChiTiet]);
+    return newChiTiet;
+  }
+
+  // HoaDon methods
+  getHoaDon() {
+    return this.hoaDon.asReadonly();
+  }
+  addHoaDon(hoaDon: Omit<HoaDon, 'ma_hoa_don'>) {
+    const newHoaDon: HoaDon = {
+      ...hoaDon,
+      ma_hoa_don: 'HD-' + this.generateId(),
+    };
+    this.hoaDon.update((hd) => [...hd, newHoaDon]);
+    return newHoaDon;
+  }
+
+  // ChiTietHoaDon methods
+  getChiTietHoaDon() {
+    return this.chiTietHoaDon.asReadonly();
+  }
+  addChiTietHoaDon(chiTiet: Omit<ChiTietHoaDon, 'id'>) {
+    const newChiTiet: ChiTietHoaDon = {
+      ...chiTiet,
+      id: this.generateId(),
+    };
+    this.chiTietHoaDon.update((ct) => [...ct, newChiTiet]);
+    return newChiTiet;
+  }
+
+  // PhuongThucThanhToan methods
+  getPhuongThucThanhToan() {
+    return this.phuongThucThanhToan.asReadonly();
+  }
+  addPhuongThucThanhToan(
+    phuongThuc: Omit<PhuongThucThanhToan, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>
+  ) {
+    const newPhuongThuc: PhuongThucThanhToan = {
+      ...phuongThuc,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.phuongThucThanhToan.update((pttt) => [...pttt, newPhuongThuc]);
+    return newPhuongThuc;
+  }
+
+  // KhuyenMai methods
+  getKhuyenMai() {
+    return this.khuyenMai.asReadonly();
+  }
+  addKhuyenMai(khuyenMai: Omit<KhuyenMai, 'ma_khuyen_mai' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newKhuyenMai: KhuyenMai = {
+      ...khuyenMai,
+      ma_khuyen_mai: 'KM-' + this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.khuyenMai.update((km) => [...km, newKhuyenMai]);
+    return newKhuyenMai;
+  }
+
+  // DanhGia methods
+  getDanhGia() {
+    return this.danhGia.asReadonly();
+  }
+  addDanhGia(danhGia: Omit<DanhGia, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newDanhGia: DanhGia = {
+      ...danhGia,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.danhGia.update((dg) => [...dg, newDanhGia]);
+    return newDanhGia;
+  }
+
+  // NhanVien methods
+  getNhanVien() {
+    return this.nhanVien.asReadonly();
+  }
+  addNhanVien(nhanVien: Omit<NhanVien, 'id' | 'ngay_tao' | 'ngay_cap_nhat'>) {
+    const newNhanVien: NhanVien = {
+      ...nhanVien,
+      id: this.generateId(),
+      ngay_tao: new Date(),
+      ngay_cap_nhat: new Date(),
+    };
+    this.nhanVien.update((nv) => [...nv, newNhanVien]);
+    return newNhanVien;
   }
 }

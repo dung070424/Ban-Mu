@@ -56,11 +56,30 @@ body {
 /* Sidebar */
 .sidebar {
   background: #ffffff;
-  padding: 16px;
+  padding: 16px 16px 0 16px; /* avoid extra space at bottom when sticky footer present */
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
   border-right: 1px solid #eef0f4;
+  overflow-y: auto; /* Allow scrolling when expanded */
+  -ms-overflow-style: auto; /* Re-enable scrollbar for IE/Edge */
+  scrollbar-width: thin; /* Re-enable scrollbar for Firefox */
+  min-height: 100vh; /* ensure full height to eliminate bottom gap */
+}
+
+/* Visible, thin scrollbar for the sidebar */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.25);
 }
 .brand {
   display: flex;
@@ -102,8 +121,57 @@ body {
 
 .menu {
   margin-top: 12px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  flex: 10; /* take remaining space so footer stays at bottom */
+  padding-bottom: 8px; /* prevent overlap with sticky footer without leaving a gap */
+}
+
+/* Grouped sidebar menu */
+.menu-group {
+  border: none;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.menu-group + .menu-group {
+  margin-top: 4px;
+}
+
+.menu-group-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #f9fafb 0%, #f2f4f7 100%);
+  border: 1px solid #eef0f4;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #344054;
+}
+
+.menu-group-header .menu-icon {
+  width: 22px;
+}
+
+.menu-expand {
+  margin-left: auto;
+  color: #98a2b3;
+}
+
+.menu-group-items {
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #eef0f4;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
 }
 .menu-item {
   display: flex;
@@ -137,6 +205,14 @@ body {
 
 .sidebar-footer {
   margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  padding: 8px 16px; /* consistent spacing, removes visual gap */
+  border-top: 1px solid #eef0f4;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.03);
 }
 .logout {
   display: flex;
@@ -487,7 +563,6 @@ body {
     width: 18px;
   }
 }
-
 
 /* User Info Styles */
 .mobile-user-info {
